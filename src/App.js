@@ -6,20 +6,16 @@ function App() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        setDebugInfo('Fetching from swapi.info...');
         
         // Try the swapi.info endpoint first
         let response = await fetch('https://swapi.info/api/films');
         
-        // If that fails, try swapi.dev
         if (!response.ok) {
-          setDebugInfo('swapi.info failed, trying swapi.dev...');
           response = await fetch('https://swapi.dev/api/films/');
         }
         
@@ -28,42 +24,31 @@ function App() {
         }
         
         const data = await response.json();
-        setDebugInfo(`API Response received. Data type: ${typeof data}`);
-        console.log('Full API Response:', data);
+        console.log('Full API Response:', JSON.stringify(data, null, 2));
         
-        // Handle different response formats
-        let filmsArray;
-        if (Array.isArray(data)) {
-          filmsArray = data;
-          setDebugInfo('Response is an array');
-        } else if (data.results && Array.isArray(data.results)) {
-          filmsArray = data.results;
-          setDebugInfo('Response has results property');
-        } else if (data.films && Array.isArray(data.films)) {
-          filmsArray = data.films;
-          setDebugInfo('Response has films property');
-        } else {
-          setDebugInfo(`Could not find array. Data keys: ${Object.keys(data).join(', ')}`);
-          throw new Error('No films data found in API response');
+        // Get the films - the API returns an array directly
+        const filmsArray = data;
+        
+        console.log('Films Array:', filmsArray);
+        console.log('Is Array:', Array.isArray(filmsArray));
+        console.log('Length:', filmsArray ? filmsArray.length : 'N/A');
+        
+        if (!Array.isArray(filmsArray)) {
+          throw new Error('API response is not an array');
         }
         
-        setDebugInfo(`Found ${filmsArray.length} films`);
-        console.log('Films Array:', filmsArray);
-        
         if (filmsArray.length === 0) {
-          throw new Error('No films data found in API response');
+          throw new Error('No films returned from API');
         }
         
         // Sort movies by episode number
-        const sortedMovies = filmsArray.sort((a, b) => a.episode_id - b.episode_id);
+        const sortedMovies = [...filmsArray].sort((a, b) => a.episode_id - b.episode_id);
         setMovies(sortedMovies);
         setError(null);
-        setDebugInfo(`Successfully loaded ${sortedMovies.length} films`);
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
         setMovies([]);
-        setDebugInfo(`Error: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -84,7 +69,6 @@ function App() {
           <div className="loading">
             <div className="loading-spinner"></div>
             <p>Searching the galaxy for Star Wars films...</p>
-            {debugInfo && <p style={{ marginTop: '20px', fontSize: '0.9rem', color: '#ffaa00' }}>{debugInfo}</p>}
           </div>
         )}
 
@@ -92,7 +76,6 @@ function App() {
           <div className="error">
             <p>⚠️ Error loading movies: {error}</p>
             <p>Please check your connection and try again.</p>
-            {debugInfo && <p style={{ marginTop: '20px', fontSize: '0.9rem' }}>{debugInfo}</p>}
           </div>
         )}
 
@@ -103,7 +86,6 @@ function App() {
         {!loading && !error && movies.length === 0 && (
           <div className="no-results">
             <p>No Star Wars films found.</p>
-            {debugInfo && <p style={{ marginTop: '20px', fontSize: '0.9rem' }}>{debugInfo}</p>}
           </div>
         )}
       </main>
