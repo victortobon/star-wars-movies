@@ -17,8 +17,15 @@ function App() {
         }
         const data = await response.json();
         
+        // Handle both API response formats
+        const filmsArray = Array.isArray(data) ? data : data.results;
+        
+        if (!filmsArray) {
+          throw new Error('No films data found in API response');
+        }
+        
         // Sort movies by episode number
-        const sortedMovies = data.results.sort((a, b) => a.episode_id - b.episode_id);
+        const sortedMovies = filmsArray.sort((a, b) => a.episode_id - b.episode_id);
         setMovies(sortedMovies);
         setError(null);
       } catch (err) {
