@@ -17,11 +17,13 @@ function App() {
         }
         const data = await response.json();
         
-        // The SWAPI API returns results in a 'results' property
-        const filmsArray = data.results || data;
+        console.log('API Response:', data);
+        
+        // Check if we have results
+        let filmsArray = data.results;
         
         if (!filmsArray || !Array.isArray(filmsArray)) {
-          throw new Error('Invalid API response format');
+          throw new Error(`Invalid API response format. Got: ${typeof filmsArray}`);
         }
         
         // Sort movies by episode number
