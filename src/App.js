@@ -11,17 +11,17 @@ function App() {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await fetch('https://swapi.info/api/films');
+        const response = await fetch('https://swapi.dev/api/films/');
         if (!response.ok) {
           throw new Error(`API Error: ${response.status}`);
         }
         const data = await response.json();
         
-        // Handle both API response formats
-        const filmsArray = Array.isArray(data) ? data : data.results;
+        // The SWAPI API returns results in a 'results' property
+        const filmsArray = data.results || data;
         
-        if (!filmsArray) {
-          throw new Error('No films data found in API response');
+        if (!filmsArray || !Array.isArray(filmsArray)) {
+          throw new Error('Invalid API response format');
         }
         
         // Sort movies by episode number
@@ -29,6 +29,7 @@ function App() {
         setMovies(sortedMovies);
         setError(null);
       } catch (err) {
+        console.error('Fetch error:', err);
         setError(err.message);
         setMovies([]);
       } finally {
